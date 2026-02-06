@@ -1,1 +1,66 @@
-import express from "express";const app = express();app.use(express.json());// ========== MCP METADATA ==========app.get("/mcp", (req, res) => {  res.json({    name: "Start Now",    description: "Trasforma pensieri e procrastinazione in una singola azione immediata.",    tools: [      {        name: "start_now",        description: "Riduce un compito a un'azione semplice da iniziare subito.",        input_schema: {          type: "object",          properties: {            task: {              type: "string",              description: "Cosa stai rimandando"            }          },          required: ["task"]        }      }    ]  });});// ========== MCP TOOL EXECUTION ==========app.post("/mcp", (req, res) => {  const { tool, input } = req.body;  if (tool === "start_now") {    const task = input.task;    res.json({      output: `Non pensarci troppo.\n\nApri quello che ti serve e fai il PRIMO micro-passo per:\n?? ${task}\n\nSolo 2 minuti. Adesso.`    });    return;  }  res.status(400).json({ error: "Tool non riconosciuta" });});// ========== DOMAIN VERIFICATION ==========app.get("/.well-known/openai-verification.txt", (req, res) => {  res.type("text/plain");  res.send("TOKEN_VERRA_INSERITO_DOPO");});// ========== HEALTH CHECK ==========app.get("/", (req, res) => {  res.send("Start Now MCP server is running.");});const port = process.env.PORT || 3000;app.listen(port, () => {  console.log(`MCP server listening on port ${port}`);});
+import express from "express";
+
+const app = express();
+app.use(express.json());
+
+// ===== MCP METADATA =====
+app.post("/mcp/tools/list", (req, res) => {
+  res.json({
+    tools: [
+      {
+        name: "start_now",
+        description: "Riduce un compito a un'azione semplice da iniziare subito.",
+        input_schema: {
+          type: "object",
+          properties: {
+            task: {
+              type: "string",
+              description: "Cosa stai rimandando"
+            }
+          },
+          required: ["task"]
+        }
+      }
+    ]
+  });
+});
+
+// ===== MCP TOOL EXECUTION =====
+app.post("/mcp/tools/call", (req, res) => {
+  const { name, arguments: args } = req.body;
+
+  if (name === "start_now") {
+    res.json({
+      content: [
+        {
+          type: "text",
+          text: `Non pensarci troppo.
+
+Apri quello che ti serve e fai il PRIMO micro-passo per:
+👉 ${args.task}
+
+Solo 2 minuti. Adesso.`
+        }
+      ]
+    });
+    return;
+  }
+
+  res.status(400).json({ error: "Tool non riconosciuta" });
+});
+
+// ===== DOMAIN VERIFICATION =====
+app.get("/.well-known/openai-verification.txt", (req, res) => {
+  res.type("text/plain");
+  res.send("TOKEN_VERRA_INSERITO_DOPO");
+});
+
+// ===== HEALTH CHECK =====
+app.get("/", (req, res) => {
+  res.send("Start Now MCP server is running.");
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`MCP server listening on port ${port}`);
+});

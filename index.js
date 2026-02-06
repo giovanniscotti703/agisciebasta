@@ -64,3 +64,16 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`MCP server listening on port ${port}`);
 });
+
+
+
+// ===== MCP HANDSHAKE =====
+app.get("/.well-known/mcp.json", (req, res) => {
+  res.json({
+    name: "Start Now",
+    description: "App anti-procrastinazione: svuota la testa e inizia subito.",
+    version: "1.0.0",
+    tools_endpoint: "/mcp/tools/list",
+    call_endpoint: "/mcp/tools/call"
+  });
+});
